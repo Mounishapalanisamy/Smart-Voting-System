@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Create Voter Identity – Smart Voting{% endblock %}
+{% block content %}
+<section class="phone">
+  <div class="phone-head">Create Voter Identity</div>
+  <div class="phone-body">
+    <label class="field"><span>Legal Identifier</span>
+      <input id="name" placeholder="Full name as on ID card" autocomplete="off"></label>
+    <div class="row2">
+      <label class="field"><span>Age</span>
+        <input id="age" type="number" min="18" max="120" placeholder="18+"></label>
+      <label class="field"><span>ID Number</span>
+        <input id="voter_id" maxlength="20" placeholder="e.g. TN2026011" autocomplete="off"></label>
+    </div>
+    <label class="field"><span>Secure Contact</span>
+      <input id="contact" type="tel" placeholder="Mobile number" autocomplete="off"></label>
+
+    <div class="field"><span>Biometric Map</span></div>
+    <div class="camera-box" id="camBox">
+      <video id="video" autoplay playsinline muted></video>
+      <div class="scan-ring"></div>
+      <button id="scanBtn" class="scan-btn" type="button">Begin Scan</button>
+    </div>
+    <div id="thumbs" class="thumbs"></div>
+    <div id="status" class="status"></div>
+
+    <button id="submitBtn" class="btn primary block" type="button" disabled>Confirm Identity</button>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const MIN = {{ min_images }};
+const $ = id => document.getElementById(id);
+const video = $("video"), thumbs = $("thumbs"), statusEl = $("status");
+let images = [];
+
+startCamera(video).catch(e => setStatus("Camera error: " + e.message, "error"));
+function setStatus(msg, kind) { statusEl.textContent = msg; statusEl.className = "status " + (kind || ""); }
+
+$("scanBtn").onclick = async () => {
+  const btn = $("scanBtn");
+  images = []; thumbs.innerHTML = "";
+  btn.disabled = true; btn.textContent = "Scanning…";
+  $("camBox").classList.add("scanning");
+  setStatus("Hold still and look at the camera…");
+  const frames = await captureBurst(video, MIN, 700, (f, i, n) => {
+    const img = new Image(); img.src = f; thumbs.appendChild(img);
+    setStatus("Scanning " + i + "/" + n + "…");
+  });
+  $("camBox").classList.remove("scanning");
+  btn.disabled = false; btn.textContent = "Rescan";
+  if (frames.length < MIN) return setStatus("Camera not ready. Try again.", "error");
+  images = frames;
+  $("submitBtn").disabled = false;
+  setStatus("Face scan complete. Press Confirm Identity.", "success");
+};
+
+$("submitBtn").onclick = async () => {
+  const btn = $("submitBtn");
+  btn.disabled = true; setStatus("Processing biometric data…");
+  try {
+    const res = await fetch("/register", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        name: $("name").value, age: $("age").value, voter_id: $("voter_id").value,
+        contact: $("contact").value, images: images
+      })
+    });
+    const out = await res.json();
+    if (out.ok) {
+      setStatus(out.message, "success");
+      images = []; thumbs.innerHTML = "";
+      ["name", "age", "voter_id", "contact"].forEach(i => $(i).value = "");
+      $("scanBtn").textContent = "Begin Scan";
+    } else { setStatus(out.error, "error"); btn.disabled = false; }
+  } catch (e) { setStatus("Network error. Try again.", "error"); btn.disabled = false; }
+};
+</script>
+{% endblock %}

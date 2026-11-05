@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block container_class %}wide{% endblock %}
+{% block content %}
+<section class="hero">
+  <div>
+    <span class="pill">Election cycle 2026 now open</span>
+    <h1>Your Voice,<br><span>Digitally Secured.</span></h1>
+    <p>The National Electoral Authority presents a face-verified, hash-chained voting
+       infrastructure designed for the modern citizen. Fast, secure, and transparent.</p>
+    <div class="actions">
+      <a class="btn light" href="{{ url_for('verify') }}">Start Voting</a>
+      <a class="btn ghost" href="{{ url_for('eligibility') }}">Check Eligibility</a>
+    </div>
+  </div>
+  <aside class="notice">
+    <h4>Notice Board</h4>
+    <div class="notice-item"><b>New Security Protocol</b>
+      <small>Face verification is now mandatory for every ballot.</small></div>
+    <div class="notice-item"><b>Registration Deadline</b>
+      <small>New voters must complete biometric enrolment before polling.</small></div>
+    <a href="{{ url_for('register') }}">Register as a new voter →</a>
+  </aside>
+</section>
+
+<div class="home-body">
+  <section class="grid three">
+    <div class="card stat"><span>{{ stats.registered }}</span>Registered voters</div>
+    <div class="card stat"><span>{{ stats.voted }}</span>Votes cast</div>
+    <div class="card stat"><span>{{ stats.pending }}</span>Yet to vote</div>
+  </section>
+
+  <section class="card" id="how">
+    <h2>How it works</h2>
+    <ol class="steps">
+      <li><b>Register</b> – enter your details and scan your face.</li>
+      <li><b>Verify</b> – the live camera image is matched with the stored biometric record.</li>
+      <li><b>Vote</b> – a verified voter reaches the ballot and selects one party.</li>
+      <li><b>Lock</b> – the registry marks you as <b>VOTED</b>; any further attempt is blocked.</li>
+    </ol>
+  </section>
+</div>
+{% endblock %}

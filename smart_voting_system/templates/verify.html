@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Verify – Smart Voting{% endblock %}
+{% block content %}
+<section class="phone">
+  <div class="phone-head">Biometric Verification</div>
+  <div class="phone-body">
+    <p class="hint">Look straight at the camera. Your live image is matched with the registered voter registry.</p>
+    <div class="camera-box" id="camBox">
+      <video id="video" autoplay playsinline muted></video>
+      <div class="scan-ring"></div>
+      <button id="verifyBtn" class="scan-btn" type="button">Begin Scan</button>
+    </div>
+    <div id="status" class="status center"></div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const video = document.getElementById("video");
+const statusEl = document.getElementById("status");
+const btn = document.getElementById("verifyBtn");
+
+startCamera(video).catch(e => setStatus("Camera error: " + e.message, "error"));
+function setStatus(msg, kind) { statusEl.textContent = msg; statusEl.className = "status center " + (kind || ""); }
+
+btn.onclick = async () => {
+  const image = captureFrame(video);
+  if (!image) return setStatus("Camera not ready yet.", "error");
+  btn.disabled = true; btn.textContent = "Scanning…";
+  document.getElementById("camBox").classList.add("scanning");
+  setStatus("Verifying…");
+  try {
+    const res = await fetch("/verify", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({image})
+    });
+    const out = await res.json();
+    if (out.ok) {
+      setStatus("Welcome, " + out.name + " (match " + out.confidence + "%). Opening ballot…", "success");
+      setTimeout(() => location.href = out.redirect, 1000);
+      return;
+    }
+    setStatus(out.error, "error");
+  } catch (e) { setStatus("Network error. Try again.", "error"); }
+  document.getElementById("camBox").classList.remove("scanning");
+  btn.disabled = false; btn.textContent = "Begin Scan";
+};
+</script>
+{% endblock %}

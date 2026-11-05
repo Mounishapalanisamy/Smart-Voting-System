@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Cast Your Vote – Smart Voting{% endblock %}
+{% block container_class %}wide{% endblock %}
+{% block content %}
+<form id="voteForm" method="post">
+  <input type="hidden" name="candidate_id" id="candidate_id">
+</form>
+
+<div class="vote-wrap">
+  <aside class="vote-side">
+    <h1>Cast Your<br>Sovereign Vote</h1>
+    <p>Identity verified for <b>{{ voter.name }}</b>. Please select the political organisation
+       you wish to support. This action is final and is recorded onto the secure hash-chained ledger.</p>
+    <div class="instruction"><b>Voter Instruction</b>
+      Click on a party card to view details or press the “Vote” button to cast your ballot.
+      Each voter may select only one party.</div>
+  </aside>
+
+  <section class="party-grid">
+    {% for c in candidates %}
+    <article class="party" data-id="{{ c.id }}" data-name="{{ c.name }}">
+      <div class="party-top">
+        <span class="symbol" style="background: {{ c.color }}">{{ c.name[:1] }}</span>
+        <small>ID: {{ '%02d' % c.id }}</small>
+      </div>
+      <h3>{{ c.name }}</h3>
+      <div class="slogan">{{ c.slogan }}</div>
+      <div class="party-foot">
+        <small>Candidate: Anonymous Representative</small>
+        <button type="button" class="vote-btn">Vote</button>
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const cards = document.querySelectorAll(".party");
+cards.forEach(card => {
+  card.addEventListener("click", () => {
+    cards.forEach(c => c.classList.remove("active"));
+    card.classList.add("active");
+  });
+  card.querySelector(".vote-btn").addEventListener("click", e => {
+    e.stopPropagation();
+    if (!confirm("Cast your vote for " + card.dataset.name + "? This cannot be undone.")) return;
+    document.getElementById("candidate_id").value = card.dataset.id;
+    document.getElementById("voteForm").submit();
+  });
+});
+</script>
+{% endblock %}

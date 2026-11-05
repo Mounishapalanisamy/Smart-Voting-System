@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Check Eligibility – Smart Voting{% endblock %}
+{% block content %}
+<section class="phone">
+  <div class="phone-head">Check Eligibility</div>
+  <div class="phone-body">
+    <label class="field"><span>ID Number</span>
+      <input id="voter_id" placeholder="e.g. TN2026011" maxlength="20"></label>
+    <button id="checkBtn" class="btn primary block" type="button">Check Status</button>
+    <div id="status" class="status center"></div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+const statusEl = document.getElementById("status");
+document.getElementById("checkBtn").onclick = async () => {
+  const res = await fetch("/eligibility", {method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({voter_id: document.getElementById("voter_id").value})});
+  const o = await res.json();
+  if (!o.registered) { statusEl.textContent = "Not registered. Please create a voter identity first."; statusEl.className = "status center error"; }
+  else if (o.voted) { statusEl.textContent = "Registered – vote already cast."; statusEl.className = "status center"; }
+  else { statusEl.textContent = "Registered and eligible to vote."; statusEl.className = "status center success"; }
+};
+</script>
+{% endblock %}

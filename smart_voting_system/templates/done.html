@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card center" style="max-width:520px;margin:50px auto">
+  <h1>Thank you, {{ name }}!</h1>
+  <p>Your vote has been recorded on the secure ledger.</p>
+  <p>Registry status: <span class="badge voted">Voted</span></p>
+  <div class="actions center"><a class="btn primary" href="{{ url_for('index') }}">Back to home</a></div>
+</section>
+{% endblock %}
